@@ -1,4 +1,4 @@
-package collection
+package repository
 
 type ListResult[T any] interface {
 	Count() int

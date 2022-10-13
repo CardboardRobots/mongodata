@@ -1,4 +1,4 @@
-package collection
+package repository
 
 type RepositoryError struct {
 	Message string

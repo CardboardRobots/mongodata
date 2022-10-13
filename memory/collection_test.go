@@ -7,45 +7,49 @@ import (
 
 func TestLength(t *testing.T) {
 	ctx := context.TODO()
-	c := NewCollection[string]()
+	c := NewCollection[string](func(value, id string) {})
 	length, _ := c.Count(ctx)
 	if length != 0 {
 		t.Errorf("Length should be 0, received: %v", length)
 	}
-	c.Insert("abcde", func(value, id string) {})
+	c.Insert(ctx, "abcde")
 	length, _ = c.Count(ctx)
 	if length != 1 {
 		t.Errorf("Length should be 1, received: %v", length)
 	}
 }
 
-func TestSlice(t *testing.T) {
-	c := NewCollection[string]()
+// func TestSlice(t *testing.T) {
+// 	c := NewCollection[string](func(value, id string) {})
 
-	slice := c.Slice()
-	length := len(slice)
-	if length != 0 {
-		t.Errorf("Length should be 0, received: %v", length)
-	}
+// 	slice := c.Slice()
+// 	length := len(slice)
+// 	if length != 0 {
+// 		t.Errorf("Length should be 0, received: %v", length)
+// 	}
 
-	c.Insert("abcde", func(value, id string) {})
+// 	c.Insert("abcde")
 
-	slice = c.Slice()
-	length = len(slice)
-	if length != 1 {
-		t.Errorf("Length should be 1, received: %v", length)
-	}
+// 	slice = c.Slice()
+// 	length = len(slice)
+// 	if length != 1 {
+// 		t.Errorf("Length should be 1, received: %v", length)
+// 	}
 
-	want := []string{"abcde"}
-	if !sliceEqual(want, slice) {
-		t.Errorf("Slices are not equal.  Received: %v, Expected: %v", slice, want)
-	}
-}
+// 	want := []string{"abcde"}
+// 	if !sliceEqual(want, slice) {
+// 		t.Errorf("Slices are not equal.  Received: %v, Expected: %v", slice, want)
+// 	}
+// }
 
 func TestGet(t *testing.T) {
-	c := NewCollection[string]()
+	ctx := context.TODO()
+	c := NewCollection[string](func(value, id string) {})
 	want := "abcde"
-	id := c.Insert(want, func(value, id string) {})
+	id, err := c.Insert(ctx, want)
+	if err != nil {
+		t.Errorf("%v", err)
+	}
 
 	value, err := c.GetById(context.TODO(), id)
 	if err != nil {
@@ -103,10 +107,13 @@ func TestReplace(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	ctx := context.TODO()
-	c := NewCollection[string]()
-	id := c.Insert("abcde", func(value, id string) {})
+	c := NewCollection[string](func(value, id string) {})
+	id, err := c.Insert(ctx, "abcde")
+	if err != nil {
+		t.Errorf("%v", err)
+	}
 
-	err := c.Delete(ctx, id)
+	err = c.Delete(ctx, id)
 	if err != nil {
 		t.Errorf("%v", err)
 	}
