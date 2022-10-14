@@ -1,10 +1,10 @@
-package db
+package mongodb
 
 import (
 	"context"
 	"errors"
 
-	"github.com/cardboardrobots/mongodata/collection"
+	"github.com/cardboardrobots/mongodata/repository"
 	"github.com/cardboardrobots/mongodata/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -25,7 +25,7 @@ func NewCollection[T utils.Valid](da *DataAccess, collectionName string) Collect
 func (c *Collection[T]) GetList(
 	ctx context.Context,
 	query primitive.M,
-) (collection.ListResult[T], error) {
+) (repository.ListResult[T], error) {
 	cursor, err := c.Collection.Find(ctx, query)
 	if err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func (c *Collection[T]) GetList(
 		return nil, err
 	}
 
-	return collection.NewListResult(len(results), results), nil
+	return repository.NewListResult(len(results), results), nil
 }
 
 func (c *Collection[T]) GetById(
