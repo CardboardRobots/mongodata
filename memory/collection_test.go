@@ -5,43 +5,6 @@ import (
 	"testing"
 )
 
-func TestLength(t *testing.T) {
-	ctx := context.TODO()
-	c := NewCollection(func(value, id string) {})
-	length, _ := c.Count(ctx)
-	if length != 0 {
-		t.Errorf("Length should be 0, received: %v", length)
-	}
-	c.Insert(ctx, "abcde")
-	length, _ = c.Count(ctx)
-	if length != 1 {
-		t.Errorf("Length should be 1, received: %v", length)
-	}
-}
-
-// func TestSlice(t *testing.T) {
-// 	c := NewCollection(func(value, id string) {})
-
-// 	slice := c.Slice()
-// 	length := len(slice)
-// 	if length != 0 {
-// 		t.Errorf("Length should be 0, received: %v", length)
-// 	}
-
-// 	c.Insert("abcde")
-
-// 	slice = c.Slice()
-// 	length = len(slice)
-// 	if length != 1 {
-// 		t.Errorf("Length should be 1, received: %v", length)
-// 	}
-
-// 	want := []string{"abcde"}
-// 	if !sliceEqual(want, slice) {
-// 		t.Errorf("Slices are not equal.  Received: %v, Expected: %v", slice, want)
-// 	}
-// }
-
 func TestGet(t *testing.T) {
 	ctx := context.TODO()
 	c := NewCollection(func(value, id string) {})
@@ -77,10 +40,10 @@ func TestInsert(t *testing.T) {
 	if valueCallback != "fghij" || idCallback != id1 {
 		t.Errorf("Callback is wrong.  Received %v, %v", valueCallback, idCallback)
 	}
-	length, _ := c.Count(ctx)
-	want := 2
-	if length != want {
-		t.Errorf("length is wrong.  Received: %v, Expected: %v", length, want)
+	item0, _ := c.GetById(ctx, id0)
+	item1, _ := c.GetById(ctx, id1)
+	if item0 == "" || item1 == "" {
+		t.Errorf("Items not inserted: %v, %v", item0, item1)
 	}
 }
 
@@ -90,7 +53,7 @@ func TestReplace(t *testing.T) {
 	want := "fghij"
 	id, _ := c.Insert(ctx, "abcde")
 
-	err := c.Update(ctx, id, want)
+	_, err := c.Update(ctx, id, want)
 	if err != nil {
 		t.Errorf("%v", err)
 	}
@@ -113,12 +76,12 @@ func TestDelete(t *testing.T) {
 		t.Errorf("%v", err)
 	}
 
-	err = c.Delete(ctx, id)
+	_, err = c.Delete(ctx, id)
 	if err != nil {
 		t.Errorf("%v", err)
 	}
 
-	err = c.Delete(ctx, id)
+	_, err = c.Delete(ctx, id)
 	if err == nil {
 		t.Errorf("Error should be NotFoundError.  Received: %v", err)
 	}

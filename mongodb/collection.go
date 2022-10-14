@@ -15,17 +15,17 @@ type Collection[T utils.Valid] struct {
 	Collection *mongo.Collection
 }
 
-func NewCollection[T utils.Valid](da *DataAccess, collectionName string) Collection[T] {
-	collection := da.database.Collection(collectionName)
-	return Collection[T]{
+func NewCollection[T utils.Valid](da *DataAccess, collectionName string) repository.Repository[T] {
+	collection := da.Collection(collectionName)
+	return &Collection[T]{
 		collection,
 	}
 }
 
 func (c *Collection[T]) GetList(
 	ctx context.Context,
-	query primitive.M,
-) (repository.ListResult[T], error) {
+	query repository.Query,
+) (*repository.ListResult[T], error) {
 	cursor, err := c.Collection.Find(ctx, query)
 	if err != nil {
 		return nil, err
@@ -36,16 +36,19 @@ func (c *Collection[T]) GetList(
 		return nil, err
 	}
 
-	return repository.NewListResult(len(results), results), nil
+	result := repository.NewListResult(len(results), results)
+
+	return &result, nil
 }
 
 func (c *Collection[T]) GetById(
 	ctx context.Context,
 	id string,
-) (*T, error) {
+) (T, error) {
 	_id, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, err
+		var zero T
+		return zero, err
 	}
 
 	var result T
@@ -55,13 +58,14 @@ func (c *Collection[T]) GetById(
 	if err != nil {
 		// ErrNoDocuments means that the filter did not match any documents in
 		// the collection.
+		var zero T
 		if err == mongo.ErrNoDocuments {
-			return nil, errors.New("not found")
+			return zero, errors.New("not found")
 		}
-		return nil, err
+		return zero, err
 	}
 
-	return &result, err
+	return result, err
 }
 
 func (c *Collection[T]) Insert(
