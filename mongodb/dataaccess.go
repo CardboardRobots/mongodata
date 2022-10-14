@@ -33,7 +33,7 @@ func Connect(
 	return dataAccess, nil
 }
 
-func (da *DataAccess) GetCollection(collectionName string) *mongo.Collection {
+func (da *DataAccess) Collection(collectionName string) *mongo.Collection {
 	return da.database.Collection(collectionName)
 }
 

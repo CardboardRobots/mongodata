@@ -20,16 +20,17 @@ func NewCollection[T any](preInsertCallback func(value T, id string)) repository
 	}
 }
 
-func (c *Collection[T]) GetList(ctx context.Context) (repository.ListResult[T], error) {
-	count, _ := c.Count(ctx)
-	return repository.NewListResult(count, c.Slice()), nil
+func (c *Collection[T]) GetList(ctx context.Context, query repository.Query) (*repository.ListResult[T], error) {
+	count, _ := c.count(ctx)
+	result := repository.NewListResult(count, c.slice())
+	return &result, nil
 }
 
-func (c *Collection[T]) Count(ctx context.Context) (int, error) {
+func (c *Collection[T]) count(ctx context.Context) (int, error) {
 	return len(c.Items), nil
 }
 
-func (c *Collection[T]) Slice() []T {
+func (c *Collection[T]) slice() []T {
 	data := make([]T, len(c.Items))
 	i := 0
 	for _, value := range c.Items {
@@ -57,22 +58,22 @@ func (c *Collection[T]) Insert(ctx context.Context, value T) (string, error) {
 	return id, nil
 }
 
-func (c *Collection[T]) Update(ctx context.Context, id string, value T) error {
+func (c *Collection[T]) Update(ctx context.Context, id string, value T) (bool, error) {
 	_, ok := c.Items[id]
 	if !ok {
-		return repository.NewErrNotFound()
+		return false, repository.NewErrNotFound()
 	}
 
 	c.Items[id] = value
-	return nil
+	return true, nil
 }
 
-func (c *Collection[T]) Delete(ctx context.Context, id string) error {
+func (c *Collection[T]) Delete(ctx context.Context, id string) (bool, error) {
 	_, ok := c.Items[id]
 	if !ok {
-		return repository.NewErrNotFound()
+		return false, repository.NewErrNotFound()
 	}
 
 	delete(c.Items, id)
-	return nil
+	return true, nil
 }

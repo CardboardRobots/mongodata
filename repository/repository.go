@@ -8,15 +8,16 @@ type Repository[T any] interface {
 	Insert[T]
 	Update[T]
 	Delete
-	Count
 }
 
 type GetById[T any] interface {
 	GetById(ctx context.Context, id string) (T, error)
 }
 
+type Query map[string]interface{}
+
 type GetList[T any] interface {
-	GetList(ctx context.Context) (ListResult[T], error)
+	GetList(ctx context.Context, query Query) (*ListResult[T], error)
 }
 
 type Insert[T any] interface {
@@ -24,13 +25,9 @@ type Insert[T any] interface {
 }
 
 type Update[T any] interface {
-	Update(ctx context.Context, id string, data T) error
+	Update(ctx context.Context, id string, data T) (bool, error)
 }
 
 type Delete interface {
-	Delete(ctx context.Context, id string) error
-}
-
-type Count interface {
-	Count(ctx context.Context) (int, error)
+	Delete(ctx context.Context, id string) (bool, error)
 }
