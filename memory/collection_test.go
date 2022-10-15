@@ -9,7 +9,7 @@ func TestGet(t *testing.T) {
 	ctx := context.TODO()
 	c := NewCollection(func(value, id string) {})
 	want := "abcde"
-	id, err := c.Insert(ctx, want)
+	id, err := c.Create(ctx, want)
 	if err != nil {
 		t.Errorf("%v", err)
 	}
@@ -32,8 +32,8 @@ func TestInsert(t *testing.T) {
 		valueCallback = value
 		idCallback = id
 	})
-	id0, _ := c.Insert(ctx, "abcde")
-	id1, _ := c.Insert(ctx, "fghij")
+	id0, _ := c.Create(ctx, "abcde")
+	id1, _ := c.Create(ctx, "fghij")
 	if id0 == "" || id1 == "" || id0 == id1 {
 		t.Errorf("ids should be non-nil, and unique.  Received: %v, %v", id0, id1)
 	}
@@ -51,7 +51,7 @@ func TestReplace(t *testing.T) {
 	ctx := context.TODO()
 	c := NewCollection(func(value, id string) {})
 	want := "fghij"
-	id, _ := c.Insert(ctx, "abcde")
+	id, _ := c.Create(ctx, "abcde")
 
 	_, err := c.Update(ctx, id, want)
 	if err != nil {
@@ -71,7 +71,7 @@ func TestReplace(t *testing.T) {
 func TestDelete(t *testing.T) {
 	ctx := context.TODO()
 	c := NewCollection(func(value, id string) {})
-	id, err := c.Insert(ctx, "abcde")
+	id, err := c.Create(ctx, "abcde")
 	if err != nil {
 		t.Errorf("%v", err)
 	}

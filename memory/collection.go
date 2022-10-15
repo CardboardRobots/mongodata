@@ -50,7 +50,7 @@ func (c *Collection[T]) GetById(ctx context.Context, id string) (T, error) {
 	return value, nil
 }
 
-func (c *Collection[T]) Insert(ctx context.Context, value T) (string, error) {
+func (c *Collection[T]) Create(ctx context.Context, value T) (string, error) {
 	id := fmt.Sprintf("%v", c.currentId)
 	c.currentId = c.currentId + 1
 	c.preInsertCallback(value, id)
