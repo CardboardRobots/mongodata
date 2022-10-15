@@ -5,7 +5,7 @@ import "context"
 type Repository[T any] interface {
 	GetById[T]
 	GetList[T]
-	Insert[T]
+	Create[T]
 	Update[T]
 	Delete
 }
@@ -20,8 +20,8 @@ type GetList[T any] interface {
 	GetList(ctx context.Context, query Query) (*ListResult[T], error)
 }
 
-type Insert[T any] interface {
-	Insert(ctx context.Context, data T) (string, error)
+type Create[T any] interface {
+	Create(ctx context.Context, data T) (string, error)
 }
 
 type Update[T any] interface {

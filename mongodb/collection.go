@@ -68,7 +68,7 @@ func (c *Collection[T]) GetById(
 	return result, err
 }
 
-func (c *Collection[T]) Insert(
+func (c *Collection[T]) Create(
 	ctx context.Context,
 	data T,
 ) (string, error) {
