@@ -1,11 +1,11 @@
-package mongodb
+package mongodata
 
 import (
 	"context"
 	"errors"
 
-	"github.com/cardboardrobots/mongodata/repository"
 	"github.com/cardboardrobots/mongodata/utils"
+	"github.com/cardboardrobots/repository"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
