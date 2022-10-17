@@ -11,21 +11,23 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type Collection[T utils.Valid] struct {
+type MongoRepository[T utils.Valid] struct {
 	Collection *mongo.Collection
 }
 
-func NewCollection[T utils.Valid](da *DataAccess, collectionName string) repository.Repository[T] {
+func NewMongoRepository[T utils.Valid](da *DataAccess, collectionName string) *MongoRepository[T] {
 	collection := da.Collection(collectionName)
-	return &Collection[T]{
+	return &MongoRepository[T]{
 		collection,
 	}
 }
 
-func (c *Collection[T]) GetList(
+var _ repository.Repository[utils.Valid] = &MongoRepository[utils.Valid]{}
+
+func (c *MongoRepository[T]) GetList(
 	ctx context.Context,
 	query repository.Query,
-) (*repository.ListResult[T], error) {
+) (repository.ListResult[T], error) {
 	cursor, err := c.Collection.Find(ctx, query)
 	if err != nil {
 		return nil, err
@@ -38,10 +40,10 @@ func (c *Collection[T]) GetList(
 
 	result := repository.NewListResult(len(results), results)
 
-	return &result, nil
+	return result, nil
 }
 
-func (c *Collection[T]) GetById(
+func (c *MongoRepository[T]) GetById(
 	ctx context.Context,
 	id string,
 ) (T, error) {
@@ -68,7 +70,7 @@ func (c *Collection[T]) GetById(
 	return result, err
 }
 
-func (c *Collection[T]) Create(
+func (c *MongoRepository[T]) Create(
 	ctx context.Context,
 	data T,
 ) (string, error) {
@@ -81,7 +83,7 @@ func (c *Collection[T]) Create(
 	return result.InsertedID.(primitive.ObjectID).Hex(), error
 }
 
-func (c *Collection[T]) Update(
+func (c *MongoRepository[T]) Update(
 	ctx context.Context,
 	id string,
 	data T,
@@ -106,7 +108,7 @@ func (c *Collection[T]) Update(
 	return (result.ModifiedCount + result.UpsertedCount) > 0, err
 }
 
-func (c *Collection[T]) Delete(
+func (c *MongoRepository[T]) Delete(
 	ctx context.Context,
 	id string,
 ) (bool, error) {

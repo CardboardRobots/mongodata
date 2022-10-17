@@ -3,7 +3,7 @@ module github.com/cardboardrobots/mongodata
 go 1.19
 
 require (
-	github.com/cardboardrobots/repository v0.0.0
+	github.com/cardboardrobots/repository v0.0.2
 	github.com/go-playground/validator v9.31.0+incompatible
 	go.mongodb.org/mongo-driver v1.10.3
 )
