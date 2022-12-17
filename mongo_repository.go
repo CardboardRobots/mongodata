@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type MongoRepository[T utils.Valid] struct {
@@ -22,13 +23,31 @@ func NewMongoRepository[T utils.Valid](da *DataAccess, collectionName string) *M
 	}
 }
 
-var _ repository.Repository[utils.Valid] = &MongoRepository[utils.Valid]{}
+var _ repository.Repository[utils.Valid, repository.Query] = &MongoRepository[utils.Valid]{}
 
 func (c *MongoRepository[T]) GetList(
 	ctx context.Context,
 	query repository.Query,
+	page repository.Page,
+	sort ...repository.Sort,
 ) (repository.ListResult[T], error) {
-	cursor, err := c.Collection.Find(ctx, query)
+	sortArray := bson.D{}
+	for _, s := range sort {
+		var order int
+		if s.Order {
+			order = 1
+		} else {
+			order = -1
+		}
+
+		sortArray = append(sortArray, bson.E{Key: s.Key, Value: order})
+	}
+	opts := options.Find().
+		SetLimit(int64(page.Limit)).
+		SetSkip(int64(page.Offset)).
+		SetSort(sortArray)
+
+	cursor, err := c.Collection.Find(ctx, query, opts)
 	if err != nil {
 		return nil, err
 	}
