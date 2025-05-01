@@ -12,10 +12,15 @@ import (
 
 type Collection[M any] struct {
 	collection *mongo.Collection
+	decoders   map[string]Decoder[M]
 }
 
-func NewCollection[M any](collection *mongo.Collection) *Collection[M] {
-	return &Collection[M]{collection}
+func NewCollection[M any](
+	collection *mongo.Collection,
+) *Collection[M] {
+	return &Collection[M]{
+		collection: collection,
+	}
 }
 
 func (c *Collection[M]) Insert(ctx context.Context, id string, m *M) error {
@@ -48,13 +53,31 @@ func (c *Collection[M]) Replace(ctx context.Context, filter FilterBuilder, m *M)
 }
 
 func (c *Collection[M]) Get(ctx context.Context, id string) (*M, error) {
-	m, err := decode[M](c.collection.FindOne(ctx,
+	m, err := c.decodeSingle(c.collection.FindOne(ctx,
 		bson.M{"_id": id}))
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		err = ErrNotFound
 	}
 
-	return &m, err
+	return m, err
+}
+
+func (c Collection[M]) decodeSingle(sr *mongo.SingleResult) (*M, error) {
+	if len(c.decoders) == 0 {
+		return Decode[M](sr)
+	}
+
+	b, err := sr.Raw()
+	if err != nil {
+		return nil, err
+	}
+
+	d, ok := c.decoders[b.Lookup("_schema").String()]
+	if !ok {
+		return Decode[M](sr)
+	}
+
+	return d.Decode(sr)
 }
 
 func (c *Collection[M]) Delete(ctx context.Context, id string) error {
@@ -75,7 +98,7 @@ func (c *Collection[M]) GetList(ctx context.Context, filter FilterBuilder, sort 
 		defer result.Close(ctx)
 
 		for result.Next(ctx) {
-			m, err := decode[M](result)
+			m, err := c.decodeCursor(result)
 			if err != nil {
 				if errors.Is(err, mongo.ErrNoDocuments) {
 					err = ErrNotFound
@@ -84,11 +107,24 @@ func (c *Collection[M]) GetList(ctx context.Context, filter FilterBuilder, sort 
 				return
 			}
 
-			if !yield(&m, nil) {
+			if !yield(m, nil) {
 				return
 			}
 		}
 	}
+}
+
+func (c Collection[M]) decodeCursor(cr *mongo.Cursor) (*M, error) {
+	if len(c.decoders) == 0 {
+		return Decode[M](cr)
+	}
+
+	d, ok := c.decoders[cr.Current.Lookup("_schema").String()]
+	if !ok {
+		return Decode[M](cr)
+	}
+
+	return d.Decode(cr)
 }
 
 type Change[M any] struct {
@@ -97,8 +133,8 @@ type Change[M any] struct {
 }
 
 func newChange[M any](cs *mongo.ChangeStream) (Change[M], error) {
-	m, err := decode[M](cs)
-	return Change[M]{Value: m, Token: cs.ResumeToken().String()}, err
+	m, err := Decode[M](cs)
+	return Change[M]{Value: *m, Token: cs.ResumeToken().String()}, err
 }
 
 func (c *Collection[M]) Watch(ctx context.Context, pipeline any, token string) iter.Seq2[Change[M], error] {

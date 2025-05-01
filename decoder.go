@@ -1,10 +1,15 @@
 package mongodata
 
-type decoder interface {
+type Decoder[M any] interface {
+	Schema() string
+	Decode(Document) (*M, error)
+}
+
+type Document interface {
 	Decode(any) error
 }
 
-func decode[M any](decoder decoder) (M, error) {
+func Decode[M any](decoder Document) (*M, error) {
 	var m M
-	return m, decoder.Decode(&m)
+	return &m, decoder.Decode(&m)
 }
