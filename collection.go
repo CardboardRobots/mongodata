@@ -23,6 +23,20 @@ func NewCollection[M any](
 	}
 }
 
+func (c *Collection[M]) AddDecoder(decoder Decoder[M]) {
+	if c.decoders == nil {
+		c.decoders = map[string]Decoder[M]{
+			decoder.Schema(): decoder,
+		}
+	} else {
+		c.decoders[decoder.Schema()] = decoder
+	}
+}
+
+func (c *Collection[M]) RemoveDecoder(schema string) {
+	delete(c.decoders, schema)
+}
+
 func (c *Collection[M]) Insert(ctx context.Context, id string, m *M) error {
 	_, err := c.collection.InsertOne(ctx,
 		m)
